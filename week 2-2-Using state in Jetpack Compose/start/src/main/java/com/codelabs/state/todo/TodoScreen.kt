@@ -106,14 +106,33 @@ fun TodoItemInlineEditor(
     item : TodoItem,
     onEditItemChange: (TodoItem) -> Unit,
     onEditDone: () -> Unit,
-    onRemoveItem: (TodoItem) -> Unit
+    onRemoveItem: () -> Unit
 ) = TodoItemInput(
     text = item.task,
     onTextChange = { onEditItemChange(item.copy(task = it))},
     submit = onEditDone,
     icon = item.icon,
     onIconChange = { onEditItemChange(item.copy(icon = it))},
-    iconsVisible = true
+    iconsVisible = true,
+    buttonSlot = {
+        Row {
+            val shrinkButtons = Modifier.widthIn(20.dp)
+            TextButton(onClick = onEditDone, modifier = shrinkButtons) {
+                Text(
+                    text = "\uD83D\uDCBE", // floppy disk
+                    textAlign = TextAlign.End,
+                    modifier = Modifier.width(30.dp)
+                )
+            }
+            TextButton(onClick = onRemoveItem, modifier = shrinkButtons) {
+                Text(
+                    text = "❌",
+                    textAlign = TextAlign.End,
+                    modifier = Modifier.width(30.dp)
+                )
+            }
+        }
+    }
 )
 
 /**
@@ -161,7 +180,9 @@ fun TodoItemEntryInput(onItemComplete: (TodoItem) -> Unit) {
         setText("")
     }
 
-    TodoItemInput(text, setText, submit, icon, setIcon, iconsVisible)
+    TodoItemInput(text, setText, submit, icon, setIcon, iconsVisible) {
+        TodoEditButton(onClick = submit, text = "Add", enabled = text.isNotBlank())
+    }
 
 }
 
@@ -172,8 +193,10 @@ private fun TodoItemInput(
     submit: () -> Unit,
     icon: TodoIcon,
     onIconChange: (TodoIcon) -> Unit,
-    iconsVisible: Boolean
-) {
+    iconsVisible: Boolean,
+    buttonSlot: @Composable() () -> Unit,
+
+    ) {
     Column {
         Row(
             Modifier
@@ -189,16 +212,21 @@ private fun TodoItemInput(
                     .padding(end = 8.dp),
                 submit
             )
-            TodoEditButton(
-                onClick = {
-                    submit()
-                    onIconChange(TodoIcon.Default)
-                    onTextChange("")
-                },
-                text = "Add",
-                modifier = Modifier.align(Alignment.CenterVertically),
-                enabled = text.isNotBlank()
-            )
+//            TodoEditButton(
+//                onClick = {
+//                    submit()
+//                    onIconChange(TodoIcon.Default)
+//                    onTextChange("")
+//                },
+//                text = "Add",
+//                modifier = Modifier.align(Alignment.CenterVertically),
+//                enabled = text.isNotBlank()
+//            )
+
+            Spacer(modifier = Modifier.width(8.dp))
+            Box(Modifier.align(Alignment.CenterVertically)) {
+                buttonSlot()
+            }
         }
         if (iconsVisible) {
             AnimatedIconRow(icon, onIconChange, Modifier.padding(top = 8.dp))
